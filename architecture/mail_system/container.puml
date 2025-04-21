@@ -1,0 +1,12 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System_Boundary(accountSystem, "Account system") {
+}
+
+System_Boundary(mailerSystem, "Mailer system") {
+Container(mailerService, "Mailer Service", "Go", "Manages emails", $tags="webApp")
+}
+
+Rel(accountSystem, mailerService, "Send emails", "REST")
+@enduml

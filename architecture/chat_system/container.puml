@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+
+Container(apiGateway, "Api Gateway", "Software system", "Entry point for API calls")
+
+System_Boundary(chatSystem, "Chat system") {
+Container(chatService, "Chat Service", "Go", "Handles users chats, and messages", $tags="webApp")
+ContainerDb(chatDatabase, "Chat database", "Postgresql", "Stores users chats, and messages",  $tags="db")
+}
+
+System_Boundary(accountSystem, "Account system") {
+}
+
+Rel(user, apiGateway, "CRUD operations for chats, and messages", "REST")
+Rel(apiGateway, chatService, "CRUD operations for chats, and messages", "REST")
+Rel(chatService, accountSystem, "GET users information", "REST")
+Rel(chatService, chatDatabase, "Get/Update chats, and messages data")
+@enduml

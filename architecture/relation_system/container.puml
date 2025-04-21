@@ -1,0 +1,16 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+
+Container(apiGateway, "Api Gateway", "Software system", "Entry point for API calls")
+
+System_Boundary(relationSystem, "Relation system") {
+Container(relationService, "Relation Service", "Go", "Handles users relations", $tags="webApp")
+ContainerDb(relationDatabase, "Relation database", "Postgresql", "Stores users relations",  $tags="db")
+}
+
+Rel(user, apiGateway, "CRUD operations for users relations", "REST")
+Rel(apiGateway, relationService, "CRUD operations for users relations", "REST")
+Rel(relationService, relationDatabase, "Get/Update users relations")
+@enduml
