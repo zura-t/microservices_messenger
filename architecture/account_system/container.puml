@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+
+Container(apiGateway, "Api Gateway", "Software system", "Entry point for API calls")
+
+System_Boundary(accountSystem, "Account system") {
+Container(accountService, "Account Service", "Go", "Manages users accounts, and authorization", $tags="webApp")
+ContainerDb(accountDatabase, "Account database", "Postgresql", "Stores users accounts",  $tags="db")
+}
+
+System_Boundary(mailerSystem, "Mailer system") {
+}
+
+Rel(user, apiGateway, "CRUD operations for users accounts", "REST")
+Rel(apiGateway, accountService, "CRUD operations for users accounts", "REST")
+Rel(accountService, accountDatabase, "Get/Update users data")
+Rel(accountService, mailerSystem, "Send emails", "REST")
+@enduml

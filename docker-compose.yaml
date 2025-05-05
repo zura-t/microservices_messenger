@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: ./Dockerfile
+    networks:
+      - apiGateway
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  accounts:
+    build:
+      context: ./accounts
+      dockerfile: ./Dockerfile
+    networks:
+      - accounts
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+  mailer:
+    build:
+      context: ./mailer
+      dockerfile: ./Dockerfile
+    networks:
+      - mailer
+    ports:
+      - "8082:80"
+    restart: unless-stopped
+
+  relations:
+    build:
+      context: ./relations
+      dockerfile: ./Dockerfile
+    networks:
+      - relations
+    ports:
+      - "8083:80"
+    restart: unless-stopped
+
+  chat:
+    build:
+      context: ./chat
+      dockerfile: ./Dockerfile
+    networks:
+      - chat
+    ports:
+      - "8084:80"
+    restart: unless-stopped
+
+networks:
+  apiGateway:
+  accounts:
+  mailer:
+  relations:
+  chat:
+  

@@ -1,0 +1,18 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+
+Container(apiGateway, "Api Gateway", "Software system", "Entry point for API calls. \n Redirects requests to internal services. \n \n Handles authentication, data aggregation from several services, caching, rate limiting, and monitoring")
+Container(accountSystem, "Account  system", "Software system", "Handles users accounts")
+Container(mailerSystem, "Mailer system", "Software system", "Handles sending emails")
+Container(relationSystem, "Relation system", "Software system", "Handles users relations")
+Container(chatSystem, "Chat system", "Software system", "Handles chats, and messages")
+
+Rel(user, apiGateway, "Requests from user")
+Rel(apiGateway, accountSystem, "CRUD for users accounts, and authorization")
+Rel(accountSystem, mailerSystem, "Send emails")
+Rel(apiGateway, relationSystem, "CRUD for users relatinons")
+Rel(apiGateway, chatSystem, "CRUD for chats")
+
+@enduml
