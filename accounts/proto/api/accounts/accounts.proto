@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package go_messenger;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "pkg/api/accounts";
+
+message RegisterRequest {
+  string email = 1 [json_name = "email"];
+  string name = 2 [json_name = "name"];
+  string username = 3 [json_name = "username"];
+  string description = 4 [json_name = "description"];
+  string password = 5 [json_name = "password"];
+}
+
+message UserRegisterResponse {
+  uint64 id = 1 [json_name = "id"];
+  string email = 2 [json_name = "email"];
+  string name = 3 [json_name = "name"];
+  string username = 4 [json_name = "username"];
+  string description = 5 [json_name = "description"];
+  google.protobuf.Timestamp created_at = 6 [json_name = "created_at"];
+  google.protobuf.Timestamp updated_at = 7 [json_name = "updated_at"];
+  string access_token = 8 [json_name = "access_token"];
+  string refresh_token = 9 [json_name = "refresh_token"];
+}
+
+message LoginRequest {
+  string email = 1 [json_name = "email"];
+  string password = 2 [json_name = "password"];
+}
+
+message UserLoginResponse {
+  uint64 id = 1 [json_name = "id"];
+  string email = 2 [json_name = "email"];
+  string name = 3 [json_name = "name"];
+  string username = 4 [json_name = "username"];
+  string description = 5 [json_name = "description"];
+  google.protobuf.Timestamp created_at = 6 [json_name = "created_at"];
+  google.protobuf.Timestamp updated_at = 7 [json_name = "updated_at"];
+  string access_token = 8 [json_name = "access_token"];
+  string refresh_token = 9 [json_name = "refresh_token"];
+}
+
+message CreateUserRequest {
+  string email = 1 [json_name = "email"];
+  string name = 2 [json_name = "name"];
+  string username = 3 [json_name = "username"];
+  string description = 4 [json_name = "description"];
+  string password = 5 [json_name = "password"];
+}
+
+message UserProfile {
+  uint64 id = 1 [json_name = "id"];
+  string email = 2 [json_name = "email"];
+  string name = 3 [json_name = "name"];
+  string username = 4 [json_name = "username"];
+  string description = 5 [json_name = "description"];
+  google.protobuf.Timestamp created_at = 6 [json_name = "created_at"];
+  google.protobuf.Timestamp updated_at = 7 [json_name = "updated_at"];
+}
+
+message GetUserRequest {
+  uint64 id = 1 [json_name = "id"];
+}
+
+message GetProfileRequest {
+  uint64 id = 1 [json_name = "id"];
+}
+
+message UpdateProfileRequest {
+  string email = 1 [json_name = "email"];
+  string name = 2 [json_name = "name"];
+  string username = 3 [json_name = "username"];
+  string description = 4 [json_name = "description"];
+}
+
+message UpdateProfileResponse {
+  uint64 id = 1 [json_name = "id"];
+  string email = 2 [json_name = "email"];
+  string name = 3 [json_name = "name"];
+  string username = 4 [json_name = "username"];
+  string description = 5 [json_name = "description"];
+  google.protobuf.Timestamp created_at = 6 [json_name = "created_at"];
+  google.protobuf.Timestamp updated_at = 7 [json_name = "updated_at"];
+}
+
+message DeleteProfileRequest {
+  uint64 id = 1 [json_name = "id"];
+}
+
+message DeleteProfileResponse {
+  string message = 1 [json_name = "message"];
+}
