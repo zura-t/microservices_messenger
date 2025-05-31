@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package go_messenger;
+
+import "mailer/message.proto";
+
+option go_package = "pkg/api/mailer";
+
+service MailerService {
+  rpc SendEmail(SendEmailRequest) returns (SendEmailResponse) {}
+  rpc SendEmailWithAttachment(SendEmailWithAttachmentRequest) returns (SendEmailResponse) {}
+}

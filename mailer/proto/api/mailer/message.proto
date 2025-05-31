@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package go_messenger;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "pkg/api/mailer";
+
+message SendEmailRequest {
+  string To = 1 [json_name = "to"];
+  string Subject = 2 [json_name = "subject"];
+  string Message = 3 [json_name = "message"];
+}
+
+message SendEmailResponse {
+  string Message = 1 [json_name = "message"];
+  google.protobuf.Timestamp SentAt = 2 [json_name = "sentAt"];
+}
+
+message Attachment {
+  string FileName = 1 [json_name = "fileName"];
+  bytes FileContent = 2 [json_name = "fileContent"];
+}
+
+message SendEmailWithAttachmentRequest {
+  string To = 1 [json_name = "to"];
+  string Subject = 2 [json_name = "subject"];
+  string Message = 3 [json_name = "message"];
+  Attachment Attachment = 4 [json_name = "attachment"];
+}
