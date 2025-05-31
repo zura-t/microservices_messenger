@@ -1,0 +1,300 @@
+openapi: 3.0.3
+info:
+  title: Go Messenger API
+  version: 1.0.0
+  description: REST API for Go Messenger project
+
+servers:
+  - url: http://localhost:3000/api
+
+security:
+  - bearerAuth: []
+  
+tags:
+  - name: Authorization
+  - name: Accounts
+  - name: Relations
+  - name: Chats
+
+paths:
+  /register:
+    post:
+      tags:
+        - Authorization
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUser'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegisterResponse'
+                
+  /login:
+    post:
+      tags:
+        - Authorization
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUser'
+      responses:
+        '201':
+          description: User logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+                
+  /refresh_token:
+    post:
+      tags:
+        - Authorization
+      summary: Refresh access token
+      responses:
+        '201':
+          description: Access token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+                
+  /logout:
+    post:
+      tags:
+        - Authorization
+      summary: Log out
+      responses:
+        '201':
+          description: User logged out
+          content:
+            application/json:
+              schema:
+                type: string
+
+  /accounts:
+    get:
+      tags:
+        - Accounts
+      summary: Get profile by username
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: User not found
+  
+  /accounts/profile:
+    get:
+      tags:
+        - Accounts
+      summary: Get own profile
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: User not found
+    patch:
+      tags:
+        - Accounts
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUser'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+    delete:
+      tags:
+        - Accounts
+      summary: Delete user profile
+      responses:
+        '204':
+          description: Profile deleted
+          content:
+            application/json:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterUser:
+      type: object
+      required:
+        - email
+        - name
+        - username
+        - description
+        - password
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        description:
+          type: string
+        password:
+          type: string
+    UserRegisterResponse:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - username
+        - description
+        - created_at
+        - updated_at
+        - access_token
+        - refresh_token
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: 'date-time'
+        updated_at:
+          type: string
+          format: 'date-time'
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+          
+    LoginUser:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    UserLoginResponse:
+      type: object
+      required:
+        - id
+        - email
+        - description
+        - name
+        - username
+        - created_at
+        - updated_at
+        - access_token
+        - refresh_token
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        created_at:
+          type: string
+          format: 'date-time'
+        updated_at:
+          type: string
+          format: 'date-time'
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+          
+    RefreshTokenResponse:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+          
+    UserProfile:
+      type: object
+      required:
+        - id
+        - description
+        - email
+        - name
+        - username
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        created_at:
+          type: string
+          format: 'date-time'
+        updated_at:
+          type: string
+          format: 'date-time'
+        description:
+          type: string
+          
+    UpdateUser:
+      type: object
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+
+          
+          
