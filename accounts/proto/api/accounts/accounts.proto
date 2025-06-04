@@ -2,16 +2,17 @@ syntax = "proto3";
 
 package go_messenger;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "pkg/api/accounts";
 
 message RegisterRequest {
-  string email = 1 [json_name = "email"];
-  string name = 2 [json_name = "name"];
-  string username = 3 [json_name = "username"];
-  string description = 4 [json_name = "description"];
-  string password = 5 [json_name = "password"];
+  string email = 1 [json_name = "email", (buf.validate.field).required = true, (buf.validate.field).string.email = true];
+  string name = 2 [json_name = "name", (buf.validate.field).required = true, (buf.validate.field).string.min_len = 2];
+  string username = 3 [json_name = "username", (buf.validate.field).required = true, (buf.validate.field).string.min_len = 4];
+  string description = 4 [json_name = "description", (buf.validate.field).required = true, (buf.validate.field).string.min_len = 1];
+  string password = 5 [json_name = "password", (buf.validate.field).required = true, (buf.validate.field).string.min_len = 6];
 }
 
 message UserRegisterResponse {
@@ -27,8 +28,8 @@ message UserRegisterResponse {
 }
 
 message LoginRequest {
-  string email = 1 [json_name = "email"];
-  string password = 2 [json_name = "password"];
+  string email = 1 [json_name = "email", (buf.validate.field).required = true];
+  string password = 2 [json_name = "password", (buf.validate.field).required = true];
 }
 
 message UserLoginResponse {
@@ -43,14 +44,6 @@ message UserLoginResponse {
   string refresh_token = 9 [json_name = "refresh_token"];
 }
 
-message CreateUserRequest {
-  string email = 1 [json_name = "email"];
-  string name = 2 [json_name = "name"];
-  string username = 3 [json_name = "username"];
-  string description = 4 [json_name = "description"];
-  string password = 5 [json_name = "password"];
-}
-
 message UserProfile {
   uint64 id = 1 [json_name = "id"];
   string email = 2 [json_name = "email"];
@@ -62,18 +55,18 @@ message UserProfile {
 }
 
 message GetUserRequest {
-  uint64 id = 1 [json_name = "id"];
+  uint64 id = 1 [json_name = "id", (buf.validate.field).string.uuid = true];
 }
 
 message GetProfileRequest {
-  uint64 id = 1 [json_name = "id"];
+  uint64 id = 1 [json_name = "id", (buf.validate.field).string.uuid = true];
 }
 
 message UpdateProfileRequest {
-  string email = 1 [json_name = "email"];
-  string name = 2 [json_name = "name"];
-  string username = 3 [json_name = "username"];
-  string description = 4 [json_name = "description"];
+  string email = 1 [json_name = "email", (buf.validate.field).string.email = true];
+  string name = 2 [json_name = "name", (buf.validate.field).string.min_len = 2];
+  string username = 3 [json_name = "username", (buf.validate.field).string.min_len = 4];
+  string description = 4 [json_name = "description", (buf.validate.field).string.min_len = 1];
 }
 
 message UpdateProfileResponse {
@@ -87,7 +80,7 @@ message UpdateProfileResponse {
 }
 
 message DeleteProfileRequest {
-  uint64 id = 1 [json_name = "id"];
+  uint64 id = 1 [json_name = "id",  (buf.validate.field).required = true, (buf.validate.field).string.uuid = true];
 }
 
 message DeleteProfileResponse {
