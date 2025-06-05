@@ -7,9 +7,9 @@ import "google/protobuf/timestamp.proto";
 option go_package = "pkg/api/mailer";
 
 message SendEmailRequest {
-  string To = 1 [json_name = "to"];
-  string Subject = 2 [json_name = "subject"];
-  string Message = 3 [json_name = "message"];
+  string To = 1 [json_name = "to", (buf.validate.field).required = true, (buf.validate.field).string.email = true];
+  string Subject = 2 [json_name = "subject", (buf.validate.field).required = true, (buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 100];
+  string Message = 3 [json_name = "message", (buf.validate.field).required = true, (buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 1000, (buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 1000];
 }
 
 message SendEmailResponse {
@@ -23,8 +23,8 @@ message Attachment {
 }
 
 message SendEmailWithAttachmentRequest {
-  string To = 1 [json_name = "to"];
-  string Subject = 2 [json_name = "subject"];
-  string Message = 3 [json_name = "message"];
-  Attachment Attachment = 4 [json_name = "attachment"];
+  string To = 1 [json_name = "to", (buf.validate.field).required = true, (buf.validate.field).string.email = true];
+  string Subject = 2 [json_name = "subject",  (buf.validate.field).required = true,  (buf.validate.field).string.min_len = 1,  (buf.validate.field).string.max_len = 100]
+  string Message = 3 [json_name = "message", (buf.validate.field).required = true,  (buf.validate.field).string.min_len = 1,  (buf.validate.field).string.max_len = 1000];
+  Attachment Attachment = 4 [json_name = "attachment", (buf.validate.field).required = true];
 }
