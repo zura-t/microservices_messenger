@@ -2,36 +2,90 @@ package main
 
 import (
 	"context"
-	"net/http"
-	"os"
-	"strings"
+	"errors"
+	"fmt"
+	"log"
+	"net"
 	"sync"
-	"time"
 
+	"buf.build/go/protovalidate"
 	pb "github.com/zura-t/go_messenger/mailer/pkg/mailer"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
-
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"google.golang.org/protobuf/proto"
 )
 
 type server struct {
 	pb.UnimplementedMailerServiceServer
 
-	mx sync.RWMutex
+	mx        sync.RWMutex
+	validator *protovalidate.Validator
 }
 
-func NewServer() *server {
-	return &server{}
+func NewServer() (*server, error) {
+	server := &server{}
+
+	validator, err := protovalidate.New(
+		protovalidate.WithDisableLazy(),
+		protovalidate.WithMessages(
+			&pb.SendEmailRequest{},
+			&pb.SendEmailWithAttachmentRequest{},
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize validator: %w", err)
+	}
+
+	server.validator = &validator
+
+	return server, nil
+}
+
+func protovalidateViolationsToFieldViolations(violations []*protovalidate.Violation) []*errdetails.BadRequest_FieldViolation {
+	fieldViolations := make([]*errdetails.BadRequest_FieldViolation, len(violations))
+	for i, v := range violations {
+		fieldViolations[i] = &errdetails.BadRequest_FieldViolation{
+			Field:       v.Proto.Field.String(),
+			Description: *v.Proto.Message,
+		}
+	}
+	return fieldViolations
+}
+
+func convertProtovalidateValidationErrorToErrorBadRequest(validationError *protovalidate.ValidationError) *errdetails.BadRequest {
+	return &errdetails.BadRequest{
+		FieldViolations: protovalidateViolationsToFieldViolations(validationError.Violations),
+	}
+}
+
+func rpcValidationError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	var validationError *protovalidate.ValidationError
+	if ok := errors.As(err, &validationError); ok {
+		st, err := status.New(codes.InvalidArgument, codes.InvalidArgument.String()).WithDetails(convertProtovalidateValidationErrorToErrorBadRequest(validationError))
+		if err != nil {
+			return st.Err()
+		}
+	}
+
+	return status.Error(codes.Internal, err.Error())
 }
 
 func (s *server) SendEmail(ctx context.Context, req *pb.SendEmailRequest) (*pb.SendEmailResponse, error) {
-	err := validateSendEmailRequest(req)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
+	validator := *s.validator
+	if err := validator.Validate(req); err != nil {
+		return nil, rpcValidationError(err)
 	}
 
+	s.mx.Lock()
+	// * send email
+	s.mx.Unlock()
 	return &pb.SendEmailResponse{Message: "Email sent successfully"}, nil
 }
 
@@ -41,119 +95,54 @@ type Attachment struct {
 }
 
 func (s *server) SendEmailWithAttachment(ctx context.Context, req *pb.SendEmailWithAttachmentRequest) (*pb.SendEmailResponse, error) {
-	err := validateSendEmailWithAttachmentRequest(req)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
+	validator := *s.validator
+	if err := validator.Validate(req); err != nil {
+		return nil, rpcValidationError(err)
 	}
 
 	return &pb.SendEmailResponse{Message: "Email with attachment sent successfully"}, nil
 }
 
-func validateSendEmailWithAttachmentRequest(req *pb.SendEmailWithAttachmentRequest) error {
-	to := req.GetTo()
-	if err := validateTo(to); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid email: %v", err)
-	}
-
-	subject := req.GetSubject()
-	if err := validateSubject(subject); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid subject: %v", err)
-	}
-
-	message := req.GetMessage()
-	if err := validateMessage(message); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid message: %v", err)
-	}
-
-	var attachment *pb.Attachment = req.GetAttachment()
-	if attachment == nil {
-		return status.Error(codes.InvalidArgument, "attachments cannot be empty")
-	}
-
-	return nil
-}
-
-func validateSendEmailRequest(req *pb.SendEmailRequest) error {
-	to := req.GetTo()
-	if err := validateTo(to); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid email: %v", err)
-	}
-
-	subject := req.GetSubject()
-	if err := validateSubject(subject); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid subject: %v", err)
-	}
-
-	message := req.GetMessage()
-	if err := validateMessage(message); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid message: %v", err)
-	}
-
-	return nil
-}
-
-func validateTo(email string) error {
-	if email == "" {
-		return status.Error(codes.InvalidArgument, "email cannot be empty")
-	}
-	if !strings.Contains(email, "@") {
-		return status.Error(codes.InvalidArgument, "email must contain '@'")
-	}
-	if !strings.Contains(email, ".") {
-		return status.Error(codes.InvalidArgument, "email must contain a domain")
-	}
-	if len(email) < 5 || len(email) > 254 {
-		return status.Error(codes.InvalidArgument, "email length must be between 5 and 254 characters")
-	}
-	return nil
-}
-
-func validateSubject(subject string) error {
-	if subject == "" {
-		return status.Error(codes.InvalidArgument, "subject cannot be empty")
-	}
-	if len(subject) < 1 || len(subject) > 100 {
-		return status.Error(codes.InvalidArgument, "subject length must be between 1 and 100 characters")
-	}
-	return nil
-}
-
-func validateMessage(message string) error {
-	if message == "" {
-		return status.Error(codes.InvalidArgument, "message cannot be empty")
-	}
-	if len(message) < 1 || len(message) > 1000 {
-		return status.Error(codes.InvalidArgument, "message length must be between 1 and 1000 characters")
-	}
-	return nil
-}
-
 func main() {
-	e := echo.New()
-
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	// for startup probe
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, struct{ Status string }{Status: "OK"})
-	})
-
-	// for readiness probe
-	e.GET("/ready", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, struct{ Status string }{Status: "OK"})
-	})
-
-	e.GET("/hello", func(c echo.Context) error {
-		return c.HTML(http.StatusOK, "Hello, Docker!")
-	})
-
-	httpPort := os.Getenv("PORT")
-	if httpPort == "" {
-		httpPort = "8082"
+	server, err := NewServer()
+	if err != nil {
+		log.Fatalf("failed to create server: %v", err)
 	}
 
-	time.Sleep(5 * time.Second)
+	lis, err := net.Listen("tcp", ":8082")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
 
-	e.Logger.Fatal(e.Start(":" + httpPort))
+	validator, err := protovalidate.New(
+		protovalidate.WithDisableLazy(),
+		protovalidate.WithMessages(
+			&pb.SendEmailRequest{},
+			&pb.SendEmailWithAttachmentRequest{},
+		),
+	)
+	if err != nil {
+
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+				if err := validator.Validate(req.(proto.Message)); err != nil {
+					return nil, rpcValidationError(err)
+				}
+				return handler(ctx, req)
+			},
+		),
+		grpc.ChainStreamInterceptor(),
+	)
+
+	pb.RegisterMailerServiceServer(grpcServer, server)
+
+	reflection.Register(grpcServer)
+
+	log.Printf("server listening on %v", lis.Addr())
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }
