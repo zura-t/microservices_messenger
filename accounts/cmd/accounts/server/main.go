@@ -54,11 +54,11 @@ func NewServer() (*server, error) {
 
 func protovalidateViolationsToFieldViolations(violations []*protovalidate.Violation) []*errdetails.BadRequest_FieldViolation {
 	fieldViolations := make([]*errdetails.BadRequest_FieldViolation, len(violations))
-	for _, v := range violations {
-		fieldViolations = append(fieldViolations, &errdetails.BadRequest_FieldViolation{
+	for i, v := range violations {
+		fieldViolations[i] = &errdetails.BadRequest_FieldViolation{
 			Field:       v.Proto.Field.String(),
 			Description: *v.Proto.Message,
-		})
+		}
 	}
 	return fieldViolations
 }
