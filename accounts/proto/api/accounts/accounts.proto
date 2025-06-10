@@ -5,7 +5,7 @@ package go_messenger;
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "pkg/api/accounts";
+option go_package = "pkg/accounts";
 
 message RegisterRequest {
   string email = 1 [json_name = "email", (buf.validate.field).required = true, (buf.validate.field).string.email = true];

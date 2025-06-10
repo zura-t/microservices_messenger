@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package go_messenger;
+
+import "api-gateway/messages.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "pkg/api-gateway";
+
+service ApiGatewayService {
+  rpc Register(RegisterRequest) returns (UserRegisterResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/register"
+      body: "*"
+    };
+  }
+
+  rpc Login(LoginRequest) returns (UserLoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/login"
+      body: "*"
+    };
+  }
+
+  rpc RefreshToken(google.protobuf.Empty) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/refresh_token"
+    };
+  }
+
+  rpc Logout(google.protobuf.Empty) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/logout"
+    };
+  }
+  
+  rpc GetUser(GetUserRequest) returns (UserProfile) {
+    option (google.api.http) = {
+      get: "/api/v1/users/{id}"
+    };
+  }
+
+  rpc GetProfile(GetProfileRequest) returns (UserProfile) {
+    option (google.api.http) = {
+      get: "/api/v1/users/profile"
+    };
+  }
+
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
+    option (google.api.http) = {
+      patch: "/api/v1/users/profile"
+      body: "*"
+    };
+  }
+
+  rpc DeleteProfile(DeleteProfileRequest) returns (DeleteProfileResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/users/profile"
+    };
+  }
+}
