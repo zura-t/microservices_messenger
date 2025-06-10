@@ -4,7 +4,7 @@ package go_messenger;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "pkg/api/mailer";
+option go_package = "pkg/mailer";
 
 message SendEmailRequest {
   string To = 1 [json_name = "to", (buf.validate.field).required = true, (buf.validate.field).string.email = true];

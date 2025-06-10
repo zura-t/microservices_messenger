@@ -9,7 +9,6 @@ option go_package = "pkg/api/accounts";
 service AccountsService {
   rpc Register(RegisterRequest) returns (UserRegisterResponse) {}
   rpc Login(LoginRequest) returns (UserLoginResponse) {}
-  rpc CreateUser(CreateUserRequest) returns (UserProfile) {}
   rpc GetUser(GetUserRequest) returns (UserProfile) {}
   rpc GetProfile(GetProfileRequest) returns (UserProfile) {}
   rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {}
